@@ -103,12 +103,27 @@ glm::dvec2 mouseWorldPos(1, 1);
 std::uniform_real_distribution<double> colorDist(0.0, 1.0), viewDistX, viewDistY;
 std::random_device rd;
 std::mt19937 gen(rd());
-unsigned int randomAmount = 40; // 12500 = 1M triangles
+unsigned int randomAmount = 40;
 // Shader data
 unsigned int shader;
 GLint uColor;
 GLint projViewMatLoc;
 GLint modelMatLoc;
+// Frame time
+#ifdef _DEBUG
+const bool enableFrameTimeCheck = true;
+#else
+const bool enableFrameTimeCheck = false;
+#endif
+std::chrono::high_resolution_clock::time_point oldTime;
+
+// Print delta time in milliseconds
+void frameTimeCheck() {
+	auto currentTime = std::chrono::high_resolution_clock::now();
+	auto elapsed = currentTime - oldTime;
+	oldTime = currentTime;
+	std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count() << "\n";
+}
 
 // Random vec3 color
 glm::vec3 randomColor(std::uniform_real_distribution<double> range) {
@@ -121,7 +136,6 @@ glm::vec2 randomPos(std::uniform_real_distribution<double> x, std::uniform_real_
 
 // Get the worldspace coordinate of the mouse cursor position
 void mouseToWorld(int mouseX, int mouseY) {
-	// Model matrix can stay as identity here because this program is functionally 2D
 	mouseWorldPos = glm::unProject(glm::vec3((GLfloat)mouseX, (GLfloat)(viewport.w - mouseY), 0), identity, projectionMatrix, viewport);
 }
 
@@ -175,6 +189,9 @@ unsigned int createShader(const std::string& vertexShader, const std::string& fr
 
 // Display callback
 void display(void) {
+	if (enableFrameTimeCheck) {
+		frameTimeCheck();
+	}
 	// Clear screen and reset selection
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	selection = -1;
@@ -307,6 +324,10 @@ void initOpenGL(int w, int h) {
 	circle.build(0, coneDepth + coneHeight, 16);
 }
 
+void idle() {
+	glutPostRedisplay();
+}
+
 // Program entry
 int main(int argc, char **argv) {
 	// Initialize GLUT
@@ -326,6 +347,9 @@ int main(int argc, char **argv) {
 	glutMotionFunc(mouseMotion);
 	glutPassiveMotionFunc(mousePassive);
 	glutKeyboardFunc(keyboard);
+	if (enableFrameTimeCheck) {
+		glutIdleFunc(idle);
+	}
 	// Set options
 	glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
 	// Initialize cell data with default member
