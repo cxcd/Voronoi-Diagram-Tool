@@ -112,19 +112,10 @@ GLint modelMatLoc;
 // Frame time
 #ifdef _DEBUG
 const bool enableFrameTimeCheck = true;
+std::chrono::high_resolution_clock::time_point oldTime;
 #else
 const bool enableFrameTimeCheck = false;
 #endif
-std::chrono::high_resolution_clock::time_point oldTime;
-
-// Print delta time in milliseconds
-void frameTimeCheck() {
-	auto currentTime = std::chrono::high_resolution_clock::now();
-	auto elapsed = currentTime - oldTime;
-	oldTime = currentTime;
-	std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count() << "\n";
-}
-
 // Random vec3 color
 glm::vec3 randomColor(std::uniform_real_distribution<double> range) {
 	return glm::vec3(range(gen), range(gen), range(gen));
@@ -190,7 +181,11 @@ unsigned int createShader(const std::string& vertexShader, const std::string& fr
 // Display callback
 void display(void) {
 	if (enableFrameTimeCheck) {
-		frameTimeCheck();
+		// Print delta time in milliseconds
+		auto currentTime = std::chrono::high_resolution_clock::now();
+		auto elapsed = currentTime - oldTime;
+		oldTime = currentTime;
+		std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count() << "\n";
 	}
 	// Clear screen and reset selection
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
