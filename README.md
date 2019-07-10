@@ -13,7 +13,7 @@ Compile and run using Visual Studio 2017 or later.  You will need to use your ow
 
 ## Features
 
-Left-click anywhere to create a cell. Left-click and drag a cell to move it. Right-click a cell to delete it. Press the "c" key to clear the screen. Press the "r" key to create a random distribution of 40 cells. You can change that number by setting ```unsigned int randomAmount = 40;``` to your own number.
+Left-click anywhere to create a cell. Left-click and drag a cell to move it. Right-click a cell to delete it. Press the "c" key to clear the screen. Press the "r" key to create a random distribution of 40 cells. You can change that number by changing ```unsigned int randomAmount = 40;``` to your desired amount.
 
 ## Roadmap
 - Add growing and shrinking features (trivial)
