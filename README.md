@@ -2,7 +2,7 @@
 
 A simple performant tool to create [Voronoi Diagrams](https://en.wikipedia.org/wiki/Voronoi_diagram). 
 
-![Screenshot](/images/Screenshot1.png)
+![Screenshot](/images/Screenshot1.png?raw=true)
 
 ## Usage
 ### Dependencies
