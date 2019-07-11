@@ -103,7 +103,7 @@ glm::dvec2 mouseWorldPos(1, 1);
 std::uniform_real_distribution<double> colorDist(0.0, 1.0), viewDistX, viewDistY;
 std::random_device rd;
 std::mt19937 gen(rd());
-unsigned int randomAmount = 40;
+unsigned int randomAmount = 12500;
 // Shader data
 unsigned int shader;
 GLint uColor;
@@ -113,9 +113,12 @@ GLint modelMatLoc;
 #ifdef _DEBUG
 const bool enableFrameTimeCheck = true;
 std::chrono::high_resolution_clock::time_point oldTime;
+float frameTimeSmoothing = 0.9f;
+float smoothedFrameTime = 0;
 #else
 const bool enableFrameTimeCheck = false;
 #endif
+
 // Random vec3 color
 glm::vec3 randomColor(std::uniform_real_distribution<double> range) {
 	return glm::vec3(range(gen), range(gen), range(gen));
@@ -181,11 +184,12 @@ unsigned int createShader(const std::string& vertexShader, const std::string& fr
 // Display callback
 void display(void) {
 	if (enableFrameTimeCheck) {
-		// Print delta time in milliseconds
+		// Print frame time in milliseconds using a moving average
 		auto currentTime = std::chrono::high_resolution_clock::now();
-		auto elapsed = currentTime - oldTime;
+		auto elapsedCount = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - oldTime).count();
 		oldTime = currentTime;
-		std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count() << "\n";
+		smoothedFrameTime = (smoothedFrameTime * frameTimeSmoothing) + (elapsedCount * (1.0f - frameTimeSmoothing));
+		std::cout << "Av. time (ms): " << smoothedFrameTime << "\n";
 	}
 	// Clear screen and reset selection
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
