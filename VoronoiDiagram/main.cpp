@@ -182,7 +182,7 @@ unsigned int createShader(const std::string& vertexShader, const std::string& fr
 }
 
 // Display callback
-void display(void) {
+void display() {
 	if (enableFrameTimeCheck) {
 		// Print frame time in milliseconds using a moving average
 		auto currentTime = std::chrono::high_resolution_clock::now();
