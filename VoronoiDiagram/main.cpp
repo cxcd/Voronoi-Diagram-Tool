@@ -11,7 +11,6 @@
 #include <chrono>
 
 namespace VoronoiTool {
-
 	class Constants {
 	public:
 		static constexpr double PI = 3.14159265358979323846264338327950288;
@@ -119,15 +118,6 @@ namespace VoronoiTool {
 	GLint colorLoc;
 	GLint projViewMatLoc;
 	GLint modelMatLoc;
-	// Frame time
-	#ifdef _DEBUG
-	const bool enableFrameTimeCheck = true;
-	#else
-	const bool enableFrameTimeCheck = false;
-	#endif
-	std::chrono::high_resolution_clock::time_point oldTime;
-	float frameTimeSmoothing = 0.9f;
-	float smoothedFrameTime = 0;
 
 	// Random vec3 color
 	glm::vec3 randomColor(std::uniform_real_distribution<double> range) {
@@ -195,15 +185,6 @@ namespace VoronoiTool {
 
 	// Display callback
 	void display() {
-		if (enableFrameTimeCheck) {
-			// Print frame time in milliseconds using a moving average
-			auto currentTime = std::chrono::high_resolution_clock::now();
-			auto elapsedCount = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - oldTime).count();
-			oldTime = currentTime;
-			smoothedFrameTime = (smoothedFrameTime * frameTimeSmoothing) 
-				+ (elapsedCount * (1.0f - frameTimeSmoothing));
-			std::cout << "Av. time (ms): " << smoothedFrameTime << "\n";
-		}
 		// Clear screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// Reset selection if we're not clicking
@@ -332,11 +313,6 @@ namespace VoronoiTool {
 		glutPostRedisplay();
 	}
 
-	// Idle callback
-	void idle() {
-		glutPostRedisplay();
-	}
-
 	// Initialize OpenGL
 	void initOpenGL() {
 		glEnable(GL_DEPTH_TEST); // Remove hidded surfaces
@@ -371,9 +347,6 @@ namespace VoronoiTool {
 		glutMotionFunc(mouseMotion);
 		glutPassiveMotionFunc(mousePassive);
 		glutKeyboardFunc(keyboard);
-		if (enableFrameTimeCheck) {
-			glutIdleFunc(idle);
-		}
 		// Set options
 		glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
 	}
