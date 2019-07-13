@@ -10,37 +10,44 @@
 #include <sstream>
 #include <chrono>
 
-#define KEY_CLEAR 'c'
-#define KEY_RANDOM 'r'
+class Constants {
+public:
+	static constexpr double PI = 3.14159265358979323846264338327950288;
+};
+Constants constants;
 
-#define M_PI 3.14159265358979323846264338327950288
+class Input {
+public:
+	static constexpr char clear = 'c';
+	static constexpr char random = 'r';
+};
+Input input;
 
-class cell {
+class Cell {
 public:
 	glm::vec2 pos;
 	glm::vec3 color;
-	cell(glm::vec2 pos, glm::vec3 color) : pos(pos), color(color) {}
+	Cell(glm::vec2 t_pos, glm::vec3 t_color) : pos(t_pos), color(t_color) {}
 };
+std::vector<Cell> cells; // Vector to hold the Voronoi cell data
+
 
 class CircleFan {
 private:
-	GLuint vboId, iboId;
-	GLint attribVPosition;
-	unsigned int numPoints;
+	GLuint vboID, iboID;
 	std::vector<GLfloat> vertices;
 	std::vector<GLuint> indices;
 public:
 	~CircleFan() {
-		glDeleteBuffers(1, &vboId);
-		glDeleteBuffers(1, &iboId);
+		glDeleteBuffers(1, &vboID);
+		glDeleteBuffers(1, &iboID);
 	}
 	void build(double centerHeight, double depth, int points) {
-		numPoints = points;
 		// Generate bottom ring points
 		// Bottom not filled in because it is never visible
-		double delta = 2 * M_PI / numPoints;
+		double delta = 2 * constants.PI / points;
 		double angle = 0;
-		for (size_t i = 0; i < numPoints; i++) {
+		for (size_t i = 0; i < points; i++) {
 			vertices.push_back(cos(angle));
 			vertices.push_back(sin(angle));
 			vertices.push_back(depth);
@@ -51,31 +58,31 @@ public:
 		vertices.push_back(0);
 		vertices.push_back(centerHeight + depth);
 		// Generate indices
-		for (size_t i = 0; i < numPoints - 1; i++) {
-			indices.push_back(numPoints);
+		for (size_t i = 0; i < points - 1; i++) {
+			indices.push_back(points);
 			indices.push_back(i);
 			indices.push_back(i + 1);
 		}
 		// Last connection
-		indices.push_back(numPoints);
-		indices.push_back(numPoints - 1);
+		indices.push_back(points);
+		indices.push_back(points - 1);
 		indices.push_back(0);
 		// Generate IDs for VBO and IBO
-		glGenBuffers(1, &vboId);
-		glGenBuffers(1, &iboId);
+		glGenBuffers(1, &vboID);
+		glGenBuffers(1, &iboID);
 		// Copy vertex data
-		glBindBuffer(GL_ARRAY_BUFFER, vboId);
+		glBindBuffer(GL_ARRAY_BUFFER, vboID);
 		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat), vertices.data(), GL_DYNAMIC_DRAW);
 		// Copy indices
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iboId);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iboID);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), indices.data(), GL_DYNAMIC_DRAW);
 		// Deselect
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 	void render() const {
-		glBindBuffer(GL_ARRAY_BUFFER, vboId);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iboId);
+		glBindBuffer(GL_ARRAY_BUFFER, vboID);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iboID);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 		glDrawElements(GL_TRIANGLE_FAN, indices.size(), GL_UNSIGNED_INT, nullptr);
@@ -93,7 +100,6 @@ double coneRadius = 5, coneHeight = 1, coneDepth = -1;
 double circleBaseRadius = 0.01, circleHoverRadius = 0.025;
 int selection = -1;
 bool mouseDown = false;
-std::vector<cell> cells; // Vector to hold the Voronoi cell data
 // Matrices and viewport
 glm::mat4 identity = glm::mat4(1.0);
 glm::mat4 projectionMatrix, viewMatrix, projViewMatrix;
@@ -267,7 +273,7 @@ void mouse(int button, int state, int mouseX, int mouseY) {
 		if (state == GLUT_DOWN) {
 			if (selection < 0) {
 				mouseToWorld(mouseX, mouseY);
-				cells.push_back(cell(mouseWorldPos, randomColor(colorDist)));
+				cells.push_back(Cell(mouseWorldPos, randomColor(colorDist)));
 			}
 			mouseDown = true;
 		} else {
@@ -304,13 +310,13 @@ void mousePassive(int mouseX, int mouseY) {
 // Keyboard buttons callback
 void keyboard(unsigned char key, int x, int y) {
 	switch (key) {
-	case KEY_CLEAR:
+	case input.clear:
 		cells.clear();
 		break;
-	case KEY_RANDOM:
+	case input.random:
 		cells.clear();
 		for (size_t i = 0; i < randomAmount; i++) {
-			cells.push_back(cell(randomPos(viewDistX, viewDistY), randomColor(colorDist)));
+			cells.push_back(Cell(randomPos(viewDistX, viewDistY), randomColor(colorDist)));
 		}
 		break;
 	}
@@ -365,7 +371,7 @@ int main(int argc, char **argv) {
 	// Set options
 	glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
 	// Initialize cell data with default member
-	cells.push_back(cell(glm::vec2(0, 0), randomColor(colorDist)));
+	cells.push_back(Cell(glm::vec2(0, 0), randomColor(colorDist)));
 	// Start event loop, never returns
 	glutMainLoop();
 	// Never returns but here for convention
