@@ -107,7 +107,7 @@ std::mt19937 gen(rd());
 unsigned int randomAmount = 40;
 // Shader data
 unsigned int shader;
-GLint uColor;
+GLint colorLoc;
 GLint projViewMatLoc;
 GLint modelMatLoc;
 // Frame time
@@ -206,22 +206,22 @@ void display() {
 		// If we're already selecting a cell
 		if (mouseDown && i == selection) {
 			modelCircle = glm::scale(modelCircle, glm::vec3(glm::vec2(circleHoverRadius), 1));
-			glUniform4f(uColor, 1, 1, 1, 1);
+			glUniform4f(colorLoc, 1, 1, 1, 1);
 		} else if (selection < 0 && pointInCircle(cells[i].pos, circleHoverRadius, mouseWorldPos)) {
 			// If we're not selecting a cell but we can, select it
 			selection = i;
 			modelCircle = glm::scale(modelCircle, glm::vec3(glm::vec2(circleHoverRadius), 1));
-			glUniform4f(uColor, 1, 1, 1, 1);
+			glUniform4f(colorLoc, 1, 1, 1, 1);
 		} else {
 			// If we're not selecting a cell
 			modelCircle = glm::scale(modelCircle, glm::vec3(circleBaseRadius));
-			glUniform4f(uColor, 0, 0, 0, 1);
+			glUniform4f(colorLoc, 0, 0, 0, 1);
 		}
 		glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE, glm::value_ptr(modelCircle));
 		circle.render();
 		// Draw a cone with a random color
 		modelCone = glm::scale(modelCone, glm::vec3(glm::vec2(coneRadius), 1));
-		glUniform4f(uColor, cells[i].color.r, cells[i].color.g, cells[i].color.b, 1);
+		glUniform4f(colorLoc, cells[i].color.r, cells[i].color.g, cells[i].color.b, 1);
 		glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE, glm::value_ptr(modelCone));
 		cone.render();
 	}
@@ -328,7 +328,7 @@ void initOpenGL() {
 	// Get shader
 	shader = createShader(parseFile("c.vert"), parseFile("c.frag"));
 	glUseProgram(shader);
-	uColor = glGetUniformLocation(shader, "uColor");
+	colorLoc = glGetUniformLocation(shader, "color");
 	projViewMatLoc = glGetUniformLocation(shader, "projViewMatrix");
 	modelMatLoc = glGetUniformLocation(shader, "modelMatrix");
 	// Create VBOs
