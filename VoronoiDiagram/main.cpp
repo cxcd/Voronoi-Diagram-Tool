@@ -286,7 +286,7 @@ void mouse(int button, int state, int mouseX, int mouseY) {
 
 // Mouse motion while pressing a button callback
 void mouseMotion(int mouseX, int mouseY) {
-	if (selection >= 0) {
+	if (mouseDown && selection >= 0) {
 		mouseToWorld(mouseX, mouseY);
 		cells[selection].pos = mouseWorldPos;
 	}
