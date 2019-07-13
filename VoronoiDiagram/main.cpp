@@ -92,6 +92,7 @@ double orthoScale = 1; // Orthographic scale
 double coneRadius = 5, coneHeight = 1, coneDepth = -1;
 double circleBaseRadius = 0.01, circleHoverRadius = 0.025;
 int selection = -1;
+bool mouseDown = false;
 std::vector<cell> cells; // Vector to hold the Voronoi cell data
 // Matrices and viewport
 glm::mat4 identity = glm::mat4(1.0);
@@ -103,7 +104,7 @@ glm::dvec2 mouseWorldPos(1, 1);
 std::uniform_real_distribution<double> colorDist(0.0, 1.0), viewDistX, viewDistY;
 std::random_device rd;
 std::mt19937 gen(rd());
-unsigned int randomAmount = 12500;
+unsigned int randomAmount = 40;
 // Shader data
 unsigned int shader;
 GLint uColor;
@@ -112,12 +113,12 @@ GLint modelMatLoc;
 // Frame time
 #ifdef _DEBUG
 const bool enableFrameTimeCheck = true;
-std::chrono::high_resolution_clock::time_point oldTime;
-float frameTimeSmoothing = 0.9f;
-float smoothedFrameTime = 0;
 #else
 const bool enableFrameTimeCheck = false;
 #endif
+std::chrono::high_resolution_clock::time_point oldTime;
+float frameTimeSmoothing = 0.9f;
+float smoothedFrameTime = 0;
 
 // Random vec3 color
 glm::vec3 randomColor(std::uniform_real_distribution<double> range) {
@@ -191,21 +192,28 @@ void display() {
 		smoothedFrameTime = (smoothedFrameTime * frameTimeSmoothing) + (elapsedCount * (1.0f - frameTimeSmoothing));
 		std::cout << "Av. time (ms): " << smoothedFrameTime << "\n";
 	}
-	// Clear screen and reset selection
+	// Clear screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	selection = -1;
+	// Reset selection if we're not clicking
+	if (!mouseDown) {
+		selection = -1;
+	}
 	// Draw each cell
 	for (size_t i = 0; i < cells.size(); i++) {
 		// Draw a circle at the centre of the cone
 		glm::mat4 modelCircle = glm::translate(identity, glm::vec3(cells[i].pos, -1));
 		glm::mat4 modelCone = modelCircle;
-		// If the mouse is intersecting the circle
-		if (pointInCircle(cells[i].pos, circleHoverRadius, mouseWorldPos) && selection < 0) {
-			// Select it
+		// If we're already selecting a cell
+		if (mouseDown && i == selection) {
+			modelCircle = glm::scale(modelCircle, glm::vec3(glm::vec2(circleHoverRadius), 1));
+			glUniform4f(uColor, 1, 1, 1, 1);
+		} else if (selection < 0 && pointInCircle(cells[i].pos, circleHoverRadius, mouseWorldPos)) {
+			// If we're not selecting a cell but we can, select it
 			selection = i;
 			modelCircle = glm::scale(modelCircle, glm::vec3(glm::vec2(circleHoverRadius), 1));
 			glUniform4f(uColor, 1, 1, 1, 1);
 		} else {
+			// If we're not selecting a cell
 			modelCircle = glm::scale(modelCircle, glm::vec3(circleBaseRadius));
 			glUniform4f(uColor, 0, 0, 0, 1);
 		}
@@ -256,9 +264,14 @@ void reshape(int w, int h) {
 void mouse(int button, int state, int mouseX, int mouseY) {
 	switch (button) {
 	case GLUT_LEFT_BUTTON:
-		if (state == GLUT_DOWN && selection < 0) {
-			mouseToWorld(mouseX, mouseY);
-			cells.push_back(cell(mouseWorldPos, randomColor(colorDist)));
+		if (state == GLUT_DOWN) {
+			if (selection < 0) {
+				mouseToWorld(mouseX, mouseY);
+				cells.push_back(cell(mouseWorldPos, randomColor(colorDist)));
+			}
+			mouseDown = true;
+		} else {
+			mouseDown = false;
 		}
 		break;
 	case GLUT_RIGHT_BUTTON:
@@ -306,7 +319,7 @@ void keyboard(unsigned char key, int x, int y) {
 }
 
 // Initialize OpenGL
-void initOpenGL(int w, int h) {
+void initOpenGL() {
 	glEnable(GL_DEPTH_TEST); // Remove hidded surfaces
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // Color and depth for glClear
 	glClearDepth(1.0f);
@@ -338,7 +351,7 @@ int main(int argc, char **argv) {
 		(glutGet(GLUT_SCREEN_HEIGHT) - vHeight) / 2);
 	glutCreateWindow("Voronoi Diagram Tool");
 	// Initialize GL
-	initOpenGL(vWidth, vHeight);
+	initOpenGL();
 	// Register callbacks
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
