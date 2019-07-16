@@ -315,8 +315,9 @@ namespace VoronoiTool {
 
 	// Initialize OpenGL
 	void initOpenGL() {
-		glEnable(GL_DEPTH_TEST); // Remove hidded surfaces
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // Color and depth for glClear
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_MULTISAMPLE_ARB);
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glClearDepth(1.0f);
 		// Initialize GLEW
 		glewInit();
@@ -334,7 +335,7 @@ namespace VoronoiTool {
 	void initGLUT(int *argc, char **argv) {
 		// Initialize GLUT
 		glutInit(argc, argv);
-		glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+		glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | GLUT_MULTISAMPLE);
 		glutInitWindowSize(vWidth, vHeight);
 		// Create window in centre of screen
 		glutInitWindowPosition((glutGet(GLUT_SCREEN_WIDTH) - vWidth) / 2,
