@@ -2,7 +2,7 @@
 
 A simple performant tool to create 2D [Voronoi Diagrams](https://en.wikipedia.org/wiki/Voronoi_diagram). This program computes an approximation of the Euclidean distance using intersecting cones.
 
-<img src="/images/anim.gif" alt="Animation" width="400">
+<img src="/images/animation.gif" alt="Animation" width="400">
 
 ## Getting Started
 ### Dependencies
