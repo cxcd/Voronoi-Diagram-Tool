@@ -17,6 +17,7 @@ Compile and run using Visual Studio 2017 or later.  You will need to use your ow
 - Press the **c** key to clear the screen. 
 - Press the **r** key to create a random distribution of 40 cells. You can change that number by changing ```randomAmount = 40``` to your desired amount. 
 - Press the **m** key to set all the cells to their minimum radius, and the **n** key to set the cells to their maximum radius. These can be changed by changing the ```minConeRadius = 0.03``` and ```maxConeRadius = 2.2``` values. 
-- Press the **g** key to grow the cells to their max radius. The duration of this animation can be changed by changing the ```double growDuration = 7000```. This value must be in milliseconds.
+- Press the **g** key to grow the cells. The duration of this animation can be changed by changing the ```double originalGrowDuration = 8000```. This value must be in milliseconds.
+- Press the **v** key to reverse the direction of growth, i.e to toggle between shrinking and growing.
 
 All the input bindings can be changed by modifying the variable values in the ```Input``` class.
