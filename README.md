@@ -11,11 +11,12 @@ Requires OpenGL, [FreeGLUT](http://freeglut.sourceforge.net/), [GLEW](http://gle
 ### Running
 Compile and run using Visual Studio 2017 or later.  You will need to use your own include and linker paths as they will likely differ from mine. Alternatively you can create a makefile and avoid VS.
 
-## Features
+## Usage
+- **Left-click** anywhere to create a cell. 
+- **Left-click** and drag a cell to move it, and **right-click** a cell to delete it. 
+- Press the **c** key to clear the screen. 
+- Press the **r** key to create a random distribution of 40 cells. You can change that number by changing ```randomAmount = 40``` to your desired amount. 
+- Press the **m** key to set all the cells to their minimum radius, and the **n** key to set the cells to their maximum radius. These can be changed by changing the ```minConeRadius = 0.03``` and ```maxConeRadius = 2.2``` values. 
+- Press the **g** key to grow the cells to their max radius. The duration of this animation can be changed by changing the ```double growDuration = 7000```. This value must be in milliseconds.
 
-Left-click anywhere to create a cell. Left-click and drag a cell to move it. Right-click a cell to delete it. Press the "c" key to clear the screen. Press the "r" key to create a random distribution of 40 cells. You can change that number by changing ```unsigned int randomAmount = 40;``` to your desired amount.
-
-## Roadmap
-- Add growing and shrinking features
-- Easy way of changing the number of random cells
-- General improvements
+All the input bindings can be changed by modifying the variable values in the ```Input``` class.
