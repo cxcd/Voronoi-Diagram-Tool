@@ -18,11 +18,13 @@ namespace VoronoiTool {
 
 	class Input {
 	public:
-		static constexpr char clear = 'c';
-		static constexpr char random = 'r';
-		static constexpr char grow = 'g';
-		static constexpr char minRad = 'm';
-		static constexpr char maxRad = 'n';
+		static constexpr char 
+			clear = 'c', 
+			random = 'r',
+			grow = 'g',
+			revGrow = 'v',
+			minRad = 'm',
+			maxRad = 'n';
 	};
 	Input input;
 
@@ -124,8 +126,21 @@ namespace VoronoiTool {
 	GLint modelMatLoc;
 	// Grow
 	int growStartTime;
-	double growStartRadius;
-	double growDuration = 7000; // In milliseconds
+	double growStartRadius, growDuration, originalGrowDuration = 8000; // In milliseconds
+	bool revGrow = false;
+
+	// Reset grow state and set duration
+	// This is done to keep a constant rate of change regardless of the starting radius
+	void resetGrow() {
+		growStartRadius = coneRadius;
+		growStartTime = glutGet(GLUT_ELAPSED_TIME);
+		double newGrowDuration = originalGrowDuration * ((coneRadius - minConeRadius) / (maxConeRadius - minConeRadius));
+		if (revGrow) {
+			growDuration = newGrowDuration;
+		} else {
+			growDuration = originalGrowDuration - newGrowDuration;
+		}
+	}
 
 	template <typename T>
 	T lerp(T a, T b, T t) {
@@ -208,7 +223,12 @@ namespace VoronoiTool {
 				delta = 1;
 				growing = false;
 			}
-			coneRadius = lerp(growStartRadius, maxConeRadius, delta);
+			if (revGrow) {
+				coneRadius = lerp(growStartRadius, minConeRadius, delta);
+			} else {
+				coneRadius = lerp(growStartRadius, maxConeRadius, delta);
+
+			}
 		}
 		// Reset selection if we're not clicking
 		if (!mouseDown) {
@@ -341,9 +361,12 @@ namespace VoronoiTool {
 		case input.grow:
 			growing = !growing;
 			if (growing) {
-				growStartRadius = coneRadius;
-				growStartTime = glutGet(GLUT_ELAPSED_TIME);
+				resetGrow();
 			}
+			break;
+		case input.revGrow:
+			revGrow = !revGrow;
+			resetGrow();
 			break;
 		}
 		// Redraw
