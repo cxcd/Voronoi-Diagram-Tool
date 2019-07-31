@@ -8,7 +8,6 @@
 #include <random>
 #include <fstream>
 #include <sstream>
-#include <chrono>
 
 namespace VoronoiTool {
 	class Constants {
@@ -21,6 +20,9 @@ namespace VoronoiTool {
 	public:
 		static constexpr char clear = 'c';
 		static constexpr char random = 'r';
+		static constexpr char grow = 'g';
+		static constexpr char minRad = 'm';
+		static constexpr char maxRad = 'n';
 	};
 	Input input;
 
@@ -98,13 +100,15 @@ namespace VoronoiTool {
 	// Parameters
 	const int vWidth = 800, vHeight = 800; // Viewport init data
 	double orthoScale = 1; // Orthographic scale
-	double coneRadius = 5, coneHeight = 1, coneDepth = -1;
+	double coneRadius = 2.2, coneHeight = 1, coneDepth = -1, minConeRadius = 0.03, maxConeRadius = 2.2;
 	double circleBaseRadius = 0.01, circleHoverRadius = 0.025;
+	unsigned int coneRes = 64, circleRes = 16;
 	int selection = -1;
-	bool mouseDown = false;
+	// Input flags
+	bool mouseDown = false, growing = false;
 	// Matrices and viewport
 	glm::mat4 identity = glm::mat4(1.0);
-	glm::mat4 projectionMatrix, viewMatrix, projViewMatrix;
+	glm::mat4 projectionMatrix, viewMatrix;
 	glm::vec4 viewport;
 	// Mouse position in the world, init as non-zero
 	glm::dvec2 mouseWorldPos(1, 1);
@@ -118,6 +122,15 @@ namespace VoronoiTool {
 	GLint colorLoc;
 	GLint projViewMatLoc;
 	GLint modelMatLoc;
+	// Grow
+	int growStartTime;
+	double growStartRadius;
+	double growDuration = 7000; // In milliseconds
+
+	template <typename T>
+	T lerp(T a, T b, T t) {
+		return a + t * (b - a);
+	}
 
 	// Random vec3 color
 	glm::vec3 randomColor(std::uniform_real_distribution<double> range) {
@@ -187,6 +200,16 @@ namespace VoronoiTool {
 	void display() {
 		// Clear screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		// Growing
+		if (growing) {
+			double delta = glutGet(GLUT_ELAPSED_TIME) - growStartTime;
+			delta /= growDuration;
+			if (delta > 1) {
+				delta = 1;
+				growing = false;
+			}
+			coneRadius = lerp(growStartRadius, maxConeRadius, delta);
+		}
 		// Reset selection if we're not clicking
 		if (!mouseDown) {
 			selection = -1;
@@ -250,9 +273,8 @@ namespace VoronoiTool {
 		}
 		// Set up the camera at position looking at the origin along the -z axis
 		viewMatrix = glm::lookAt(glm::vec3(0.0), glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, 1.0, 0.0));
-		projViewMatrix = projectionMatrix * viewMatrix;
 		// Send projection matrix * view matrix to shader
-		glUniformMatrix4fv(projViewMatLoc, 1, GL_FALSE, glm::value_ptr(projViewMatrix));
+		glUniformMatrix4fv(projViewMatLoc, 1, GL_FALSE, glm::value_ptr(projectionMatrix * viewMatrix));
 	}
 
 	// Mouse buttons callback
@@ -308,8 +330,27 @@ namespace VoronoiTool {
 				cells.push_back(Cell(randomPos(viewDistX, viewDistY), randomColor(colorDist)));
 			}
 			break;
+		case input.minRad:
+			coneRadius = minConeRadius;
+			growing = false;
+			break;
+		case input.maxRad:
+			coneRadius = maxConeRadius;
+			growing = false;
+			break;
+		case input.grow:
+			growing = !growing;
+			if (growing) {
+				growStartRadius = coneRadius;
+				growStartTime = glutGet(GLUT_ELAPSED_TIME);
+			}
+			break;
 		}
 		// Redraw
+		glutPostRedisplay();
+	}
+
+	void idle() {
 		glutPostRedisplay();
 	}
 
@@ -328,8 +369,8 @@ namespace VoronoiTool {
 		projViewMatLoc = glGetUniformLocation(shader, "projViewMatrix");
 		modelMatLoc = glGetUniformLocation(shader, "modelMatrix");
 		// Create VBOs
-		cone.build(coneHeight, coneDepth, 64);
-		circle.build(0, coneDepth + coneHeight, 16);
+		cone.build(coneHeight, coneDepth, coneRes);
+		circle.build(0, coneDepth + coneHeight, circleRes);
 	}
 
 	void initGLUT(int *argc, char **argv) {
@@ -348,6 +389,7 @@ namespace VoronoiTool {
 		glutMotionFunc(mouseMotion);
 		glutPassiveMotionFunc(mousePassive);
 		glutKeyboardFunc(keyboard);
+		glutIdleFunc(idle);
 		// Set options
 		glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
 	}
