@@ -109,8 +109,7 @@ namespace VoronoiTool {
 	// Input flags
 	bool mouseDown = false, growing = false;
 	// Matrices and viewport
-	glm::mat4 identity = glm::mat4(1.0);
-	glm::mat4 projectionMatrix, viewMatrix;
+	glm::mat4 identity = glm::mat4(1.0), projectionMatrix, viewMatrix;
 	glm::vec4 viewport;
 	// Mouse position in the world, init as non-zero
 	glm::dvec2 mouseWorldPos(1, 1);
@@ -121,19 +120,17 @@ namespace VoronoiTool {
 	unsigned int randomAmount = 40;
 	// Shader data
 	unsigned int shader;
-	GLint colorLoc;
-	GLint projViewMatLoc;
-	GLint modelMatLoc;
+	GLint colorLoc, projViewMatLoc, modelMatLoc;
 	// Grow
 	int growStartTime;
 	double growStartRadius, growDuration, originalGrowDuration = 8000; // In milliseconds
 	bool revGrow = false;
 
 	// Reset grow state and set duration
-	// This is done to keep a constant rate of change regardless of the starting radius
 	void resetGrow() {
 		growStartRadius = coneRadius;
 		growStartTime = glutGet(GLUT_ELAPSED_TIME);
+		// This is done to keep a constant rate of change
 		double newGrowDuration = originalGrowDuration * ((coneRadius - minConeRadius) / (maxConeRadius - minConeRadius));
 		if (revGrow) {
 			growDuration = newGrowDuration;
